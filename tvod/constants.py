@@ -1,0 +1,3 @@
+TVOD_NAME = 'TwitchVOD'
+TVOD_VERSION = '1.0.0'
+TVOD_VERSION_NAME = 'Obsidian'
