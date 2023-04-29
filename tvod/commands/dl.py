@@ -126,7 +126,7 @@ def cli(url, proxy=None, quality=None):
                         f.write(ff.read())
         except OSError:
             shutil.rmtree(temp_dir)
-            return console.error(f'Error: Unable to merge segments')
+            return console.error('Error: Unable to merge segments')
 
     with console.status(
         '[white]Convert [info]raw ts file[/info] into [info]mp4 file',
@@ -146,10 +146,10 @@ def cli(url, proxy=None, quality=None):
         shutil.rmtree(temp_dir)
 
         if ffmpeg.returncode != 0:
-            return console.error(f'Error: Unable to convert file')
+            return console.error('Error: Unable to convert file')
 
     console.print(
-        f'Successfully downloaded '
+        'Successfully downloaded '
         f'[info]{vod.title}[/info]'
         f' by '
         f'[info]{vod.streamer}[/info]',

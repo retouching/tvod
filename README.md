@@ -4,6 +4,9 @@
 
 <br>
 
+This project is based on [TwitchNoSubs](https://github.com/besuper/TwitchNoSub)
+<br>
+
 <h2>Requirements</h2>
 
 - **Python** (up to 3.10)
