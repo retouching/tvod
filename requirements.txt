@@ -2,3 +2,6 @@ httpx
 ruff
 rich
 click
+pydantic
+pproxy
+m3u8

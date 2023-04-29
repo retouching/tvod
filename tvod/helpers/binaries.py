@@ -1,8 +1,6 @@
 import shutil
 
-
-class BinaryException(Exception):
-    pass
+from tvod.helpers.exceptions import BinaryException
 
 
 class Binaries:
