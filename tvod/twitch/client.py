@@ -31,21 +31,21 @@ class Client:
     @staticmethod
     def parse_url(url):
         match = re.match(
-            r'https?://(www\.)?twitch\.tv/videos/([0-9]+)',
+            r'https?://(www\.)?twitch\.tv/([^/]+/)?(videos|clip)/([^? ]+)',
             url
         )
 
         if not match:
             raise TwitchException('Invalid URL provided')
 
-        return match.group(2)
+        return match.group(3), match.group(4)
 
     def get_vod_data(self, vod_id, from_cache=True):
         if type(vod_id) != str or len(vod_id) < 1:
             raise TwitchException('Invalid VOD id')
 
         if from_cache:
-            track_or_exc = self.cache.get(vod_id)
+            track_or_exc = self.cache.get(f'vod:{vod_id}')
 
             if track_or_exc:
                 if type(track_or_exc) == TwitchException:
@@ -92,7 +92,7 @@ class Client:
 
         if not video_playback or not vod:
             exc = TwitchException('Invalid or unavailable VOD data')
-            self.cache.set(vod_id, exc, Client.KEEP_IN_CACHE)
+            self.cache.set(f'vod:{vod_id}', exc, Client.KEEP_IN_CACHE)
             raise exc
 
         with self.session.get_session() as session:
@@ -165,6 +165,79 @@ class Client:
             'streams': streams
         })
 
-        self.cache.set(vod_id, vod, Client.KEEP_IN_CACHE)
+        self.cache.set(f'vod:{vod_id}', vod, Client.KEEP_IN_CACHE)
 
         return vod
+
+    def get_clip_data(self, clip_slug, from_cache=True):
+        if type(clip_slug) != str or len(clip_slug) < 1:
+            raise TwitchException('Invalid clip id')
+
+        if from_cache:
+            track_or_exc = self.cache.get(f'clip:{clip_slug}')
+
+            if track_or_exc:
+                if type(track_or_exc) == TwitchException:
+                    raise track_or_exc
+                return
+
+        clip_data = self.session.create_request([
+            {
+                'query': """
+                    query ($clipSlug: ID!) {
+                        clip(slug: $clipSlug) {
+                            broadcaster { displayName },
+                            title
+                            videoQualities { quality, sourceURL }
+                            playbackAccessToken(
+                                params: {
+                                    platform: "web",
+                                    playerBackend: "mediaplayer",
+                                    playerType: "site"
+                                }
+                            ) {
+                                value,
+                                signature
+                            }
+                        }
+                    }
+                """,
+                'variables': {'clipSlug': clip_slug}
+            }
+        ])[0].get('data').get('clip')
+
+        print(clip_data)
+
+        video_playback = clip_data.get('playbackAccessToken')
+        clip_videos = clip_data.get('videoQualities')
+
+        if not video_playback or not clip_videos:
+            exc = TwitchException('Invalid or unavailable VOD data')
+            self.cache.set(f'clip:{clip_slug}', exc, Client.KEEP_IN_CACHE)
+            raise exc
+
+        clip = VOD(**{
+            'id': clip_slug,
+            'title': clip_data.get('title'),
+            'streamer': clip_data.get('broadcaster').get('displayName'),
+            'streams': [
+                Stream(**{
+                    'height': int(video.get('quality')),
+                    'width': {
+                        '1080': 1920,
+                        '720': 1280,
+                        '480': 854,
+                        '360': 640,
+                        '160': 284
+                    }[video.get('quality')],
+                    'url': f'{video.get("sourceURL")}'
+                           f'?token={urllib.parse.quote(video_playback.get("value"))}'
+                           f'&sig={video_playback.get("signature")}'
+                })
+                for video in clip_videos
+            ]
+        })
+
+        self.cache.set(f'vod:{clip_slug}', clip, Client.KEEP_IN_CACHE)
+
+        return clip

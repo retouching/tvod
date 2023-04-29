@@ -1,10 +1,10 @@
 <div>
-    <h1 align="center">TVOD<br>Next gen twitch VOD downloader</h1>
+    <h1 align="center">TVOD<br>Next gen twitch VOD and clip downloader</h1>
 </div>
 
 <br>
 
-This project is based on [TwitchNoSubs](https://github.com/besuper/TwitchNoSub)
+This project is based on [TwitchNoSub](https://github.com/besuper/TwitchNoSub)
 <br>
 
 <h2>Requirements</h2>
@@ -33,7 +33,7 @@ Proxy and quality are optionnal (and cli download best quality by default)
 
 <h3>2. Module mode</h3>
 
-Examples can be found [here](./examples)
+Example can be found [here](./tvod/commands/dl.py)
 
 <h2>Warning: Some things need to be considered</h2>
 
