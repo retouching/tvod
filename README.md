@@ -13,7 +13,7 @@
 <h2>Installation</h2>
 
 ```shell
-$ pip install -U "git+https://github.com/retouching/spoffline.git"
+$ pip install -U "git+https://github.com/retouching/tvod.git"
 ```
 
 <h2>Usage</h2>
