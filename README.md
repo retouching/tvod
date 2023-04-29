@@ -1,0 +1,39 @@
+<div>
+    <h1 align="center">TVOD<br>Next gen twitch VOD downloader</h1>
+</div>
+
+<br>
+
+<h2>Requirements</h2>
+
+- **Python** (up to 3.10)
+- **FFMPEG** (can be downloaded [here](https://github.com/BtbN/FFmpeg-Builds/releases))
+- **aria2c** (can be downloaded [here](https://github.com/aria2/aria2/releases/tag/release-1.36.0))
+
+<h2>Installation</h2>
+
+```shell
+$ pip install -U "git+https://github.com/retouching/spoffline.git"
+```
+
+<h2>Usage</h2>
+
+<h3>1. CLI mode</h3>
+
+```shell
+$ python -m tvod dl [URL] [--proxy URL] [--quality 1080p,720p,480p,360p,160p]
+```
+
+Proxy and quality are optionnal (and cli download best quality by default)
+
+<img src="./.github/assets/vod.gif">
+
+*(Only music can be downloaded for now)*
+
+<h3>2. Module mode</h3>
+
+Examples can be found [here](./examples)
+
+<h2>Warning: Some things need to be considered</h2>
+
+ - This project is not approved by Twitch
