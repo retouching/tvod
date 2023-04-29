@@ -28,8 +28,6 @@ Proxy and quality are optionnal (and cli download best quality by default)
 
 <img src="./.github/assets/vod.gif">
 
-*(Only music can be downloaded for now)*
-
 <h3>2. Module mode</h3>
 
 Examples can be found [here](./examples)
