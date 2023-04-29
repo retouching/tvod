@@ -7,6 +7,11 @@ class Stream(BaseModel):
     url: str
 
     @property
+    def base_url(self):
+        to_remove = self.url.split('/')[-1]
+        return self.url.replace(f'/{to_remove}', '')
+
+    @property
     def resolution(self):
         quality = self.height
 

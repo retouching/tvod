@@ -1,11 +1,12 @@
 import datetime
+import re
 import urllib.parse
 
 import httpx
 import m3u8
 
 from tvod.cacher import Cacher
-from tvod.constants import TWITCH_VOD_QUALITIES
+from tvod.constants import TWITCH_STREAMS_URL, TWITCH_VOD_QUALITIES
 from tvod.helpers.exceptions import TwitchException
 from tvod.helpers.paths import DefaultPaths
 from tvod.helpers.proxy import Proxy
@@ -21,11 +22,23 @@ class Client:
             raise ValueError('Invalid proxy provided')
 
         self.proxy = proxy
-        self.session = Session(self)
         self.cache = Cacher(
             'twitch',
             (cache_path or DefaultPaths.get_cache_path())
         )
+        self.session = Session(self)
+
+    @staticmethod
+    def parse_url(url):
+        match = re.match(
+            r'https?://(www\.)?twitch\.tv/videos/([0-9]+)',
+            url
+        )
+
+        if not match:
+            raise TwitchException('Invalid URL provided')
+
+        return match.group(2)
 
     def get_vod_data(self, vod_id, from_cache=True):
         if type(vod_id) != str or len(vod_id) < 1:
@@ -83,7 +96,7 @@ class Client:
             raise exc
 
         with self.session.get_session() as session:
-            req = session.get(f'https://usher.ttvnw.net/vod/{vod_id}.m3u8', params={
+            req = session.get(f'{TWITCH_STREAMS_URL}/{vod_id}.m3u8', params={
                 'token': video_playback.get('value'),
                 'sig': video_playback.get('signature'),
                 'allow_source': 'true'

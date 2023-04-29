@@ -10,3 +10,7 @@ class VOD(BaseModel):
     title: str
     streamer: str
     streams: List[Stream]
+
+    @property
+    def best_stream(self):
+        return next(iter(sorted(self.streams, key=lambda s: int(s.resolution.replace('p', '')), reverse=True)), None)

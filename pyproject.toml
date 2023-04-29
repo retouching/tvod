@@ -4,9 +4,10 @@ version = "1.0.0"
 dependencies = [
     "httpx",
     "pydantic",
-    "PyYAML",
     "rich",
-    "click"
+    "click",
+    "m3u8",
+    "pproxy"
 ]
 
 [tool.ruff]

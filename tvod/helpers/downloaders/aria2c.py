@@ -66,10 +66,10 @@ async def download(urls, download_path, proxy=None):
         Binaries.get('aria2c'),
         *args,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE
+        stderr=subprocess.DEVNULL
     )
 
-    await proc.communicate()
+    await proc.wait()
 
     os.unlink(aria2c_txt_path)
 

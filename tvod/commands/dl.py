@@ -1,0 +1,157 @@
+import asyncio
+import os
+import re
+import shutil
+import subprocess
+import time
+
+import click
+import httpx
+import m3u8
+
+from tvod.console import console
+from tvod.helpers.binaries import Binaries
+from tvod.helpers.downloaders import aria2c
+from tvod.helpers.exceptions import DownloaderException, TwitchException
+from tvod.helpers.paths import DefaultPaths
+from tvod.helpers.proxy import Proxy
+from tvod.twitch.client import Client
+
+
+@click.command()
+@click.argument('url')
+@click.option('-p', '--proxy')
+@click.option('-q', '--quality', type=click.Choice(['1080p', '720p', '480p', '360p', '160p']))
+def cli(url, proxy=None, quality=None):
+    """Download VOD"""
+
+    try:
+        vod_id = Client.parse_url(url)
+    except TwitchException as e:
+        return console.error(f'Error: {e}')
+
+    if proxy:
+        try:
+            proxy = Proxy.from_string(proxy)
+        except ValueError as e:
+            return console.error(f'Error: {e}')
+
+    client = Client(proxy=proxy)
+
+    with console.status(
+        '[white]Fetching VOD data ...',
+        spinner_style='info',
+        spinner='arc'
+    ):
+        try:
+            vod = client.get_vod_data(vod_id)
+        except TwitchException as e:
+            time.sleep(1)
+            return console.error(f'Error: {e}')
+
+    console.print(
+        f'Starting download of '
+        f'[info]{vod.title}[/info]'
+        f' by '
+        f'[info]{vod.streamer}[/info]',
+        style='white'
+    )
+
+    stream = vod.best_stream if not quality else next(filter(
+        lambda s: s.resolution == quality,
+        vod.streams
+    ), None)
+
+    if not stream:
+        return console.error(f'Error: Unable to find {quality} stream')
+
+    with client.session.get_session() as session:
+        req = session.get(stream.url)
+
+    if req.status_code != httpx.codes.OK:
+        return console.error('Error: Unable to fetch stream')
+
+    parsed_stream = m3u8.loads(req.text)
+
+    temp_dir = os.path.join(DefaultPaths.get_temp_path(), f'{vod.id}.{stream.resolution}')
+    temp_file = os.path.join(
+        DefaultPaths.get_temp_path(),
+        f'{vod.id}.{stream.resolution}',
+        f'{vod.id}.{stream.resolution}.ts'
+    )
+
+    def clean_string(text):
+        return re.sub(r' +', ' ', re.sub(r'[/\\:@?<>"*]+', ' ', text))
+
+    downloaded_file = os.path.join(
+        DefaultPaths.get_download_path(),
+        f'{clean_string(vod.title)} - {clean_string(vod.streamer)} [{stream.resolution}].mp4'
+    )
+
+    if os.path.exists(downloaded_file):
+        os.unlink(downloaded_file)
+
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+
+    with console.status(
+        '[white]Download [info]raw ts segments',
+        spinner_style='info',
+        spinner='arc'
+    ):
+        try:
+            asyncio.run(aria2c.download(
+                [
+                    {'filename': segment.uri, 'url': f'{stream.base_url}/{segment.uri}'}
+                    for segment in parsed_stream.segments
+                ],
+                temp_dir,
+                proxy
+            ))
+        except DownloaderException as e:
+            shutil.rmtree(temp_dir)
+            return console.error(f'Error: {e}')
+
+    with console.status(
+        '[white]Merge [info]segments[/info] into [info]ts file',
+        spinner_style='info',
+        spinner='arc'
+    ):
+        try:
+            with open(temp_file, 'w+b') as f:
+                for segment in parsed_stream.segments:
+                    segment_path = os.path.join(temp_dir, segment.uri)
+
+                    with open(segment_path, 'rb') as ff:
+                        f.write(ff.read())
+        except OSError:
+            shutil.rmtree(temp_dir)
+            return console.error(f'Error: Unable to merge segments')
+
+    with console.status(
+        '[white]Convert [info]raw ts file[/info] into [info]mp4 file',
+        spinner_style='info',
+        spinner='arc'
+    ):
+        ffmpeg = subprocess.Popen([
+            Binaries.get('ffmpeg'), '-y',
+            '-i', temp_file,
+            '-c', 'copy',
+            '-bsf:a', 'aac_adtstoasc',
+            '-map_metadata', '-1',
+            downloaded_file
+        ], stderr=subprocess.PIPE, stdout=subprocess.DEVNULL)
+
+        ffmpeg.wait()
+
+        if ffmpeg.returncode != 0:
+            shutil.rmtree(temp_dir)
+            return console.error(f'Error: Unable to convert file')
+
+    console.print(
+        f'Successfully downloaded '
+        f'[info]{vod.title}[/info]'
+        f' by '
+        f'[info]{vod.streamer}[/info]',
+        style='white'
+    )

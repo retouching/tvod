@@ -9,7 +9,7 @@ from tvod.helpers.exceptions import TwitchException
 class Session:
     def __init__(self, client):
         self.client = client
-        self._twitch_client_id = None
+        self._twitch_client_id = self.client.cache.get('twitch_client_id')
 
     @property
     def twitch_client_id(self):
@@ -24,6 +24,7 @@ class Session:
             if not client_id:
                 raise TwitchException('Unable to find twitch client id')
 
+            self.client.cache.set('twitch_client_id', client_id.group(1), self.client.KEEP_IN_CACHE)
             self._twitch_client_id = client_id.group(1)
         return self._twitch_client_id
 

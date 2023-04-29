@@ -2,6 +2,7 @@ TVOD_NAME = 'TwitchVOD'
 TVOD_VERSION = '1.0.0'
 TVOD_VERSION_NAME = 'Obsidian'
 
+TWITCH_STREAMS_URL = 'https://usher.ttvnw.net/vod'
 TWITCH_URL = 'https://www.twitch.tv'
 TWITCH_GQL_URL = 'https://gql.twitch.tv/gql'
 TWITCH_VOD_QUALITIES = [
