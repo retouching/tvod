@@ -140,12 +140,12 @@ def cli(url, proxy=None, quality=None):
             '-bsf:a', 'aac_adtstoasc',
             '-map_metadata', '-1',
             downloaded_file
-        ], stderr=subprocess.PIPE, stdout=subprocess.DEVNULL)
+        ], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
         ffmpeg.wait()
+        shutil.rmtree(temp_dir)
 
         if ffmpeg.returncode != 0:
-            shutil.rmtree(temp_dir)
             return console.error(f'Error: Unable to convert file')
 
     console.print(
