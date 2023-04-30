@@ -8,6 +8,7 @@ import time
 import click
 import httpx
 import m3u8
+import rich
 
 from tvod.console import console
 from tvod.helpers.binaries import Binaries
@@ -67,10 +68,7 @@ def download_vod(ctx, vod_id, quality, proxy):
         style='white'
     )
 
-    stream = vod.best_stream if not quality else next(filter(
-        lambda s: s.resolution == quality,
-        vod.streams
-    ), None)
+    stream = vod.filter_quality(quality)
 
     if not stream:
         return console.error(f'Error: Unable to find {quality} stream')

@@ -5,6 +5,7 @@ class Stream(BaseModel):
     height: int
     width: int
     url: str
+    fps: int | None = None
 
     @property
     def base_url(self):
