@@ -8,7 +8,6 @@ import time
 import click
 import httpx
 import m3u8
-import rich
 
 from tvod.console import console
 from tvod.helpers.binaries import Binaries
