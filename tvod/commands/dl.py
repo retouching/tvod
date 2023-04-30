@@ -24,7 +24,7 @@ from tvod.twitch.client import Client
 @click.option('-q', '--quality', type=click.Choice(['1080p', '720p', '480p', '360p', '160p']))
 @click.pass_context
 def cli(ctx, url, proxy=None, quality=None):
-    """Download VOD"""
+    """Download VOD and clips"""
 
     try:
         url_type, url_id = Client.parse_url(url)

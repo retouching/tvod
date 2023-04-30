@@ -1,3 +1,5 @@
+from ctypes import Union
+
 from pydantic import BaseModel
 
 
@@ -5,7 +7,7 @@ class Stream(BaseModel):
     height: int
     width: int
     url: str
-    fps: int | None = None
+    fps: Union[int, None] = None
 
     @property
     def base_url(self):

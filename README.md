@@ -9,7 +9,7 @@ This project is based on [TwitchNoSub](https://github.com/besuper/TwitchNoSub)
 
 <h2>Requirements</h2>
 
-- **Python** (up to 3.10)
+- **Python** (up to 3.9)
 - **FFMPEG** (can be downloaded [here](https://github.com/BtbN/FFmpeg-Builds/releases))
 - **aria2c** (can be downloaded [here](https://github.com/aria2/aria2/releases/tag/release-1.36.0))
 
