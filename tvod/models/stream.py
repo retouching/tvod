@@ -1,4 +1,4 @@
-from ctypes import Union
+from typing import Union
 
 from pydantic import BaseModel
 
